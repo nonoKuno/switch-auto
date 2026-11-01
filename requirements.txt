@@ -1,0 +1,5 @@
+# nuxbt は依存なしで別に入れる（README の「導入」）
+# 動作を確かめた版: Python 3.14 / numpy 2.5.4 / opencv-python 5.0.0.93 / PyYAML 6.0.3 / nuxbt 3.3.8
+numpy
+opencv-python
+PyYAML

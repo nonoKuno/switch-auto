@@ -1,0 +1,101 @@
+# 1周の区間の並び。上から順に実行する。frames は work/notes.txt のコマ番号の範囲（参考）。ゲーム開始前（1〜2）は含めない。
+# kind: replay=人の記録を再生する（route: za/routes/ からの記録、trim: [始め, 終わり]秒。pre（replay の前に流す steps。省略可）→ wait lit のあと範囲を押し、押し終わってから until を待つ。limit は trial5 の実測 + 30 秒）
+# snap: true を付けた区間は、押した0.5秒後と2秒ごとのコマを logs/<日時>/frames/ に残す（step_<区間>_<押したもの>・every_<区間>）
+# kind: fixed=PCが押す / battle=PCが決まった並びを繰り返す（limit あり） / handoff=人に渡す（全部離して通知し、Enter を待つ。limit は無い）
+# steps（上から順に行う。mash と stick は終わりの合図が出るまで続く）:
+#   press A（1回押す） / hold PLUS 3s（3秒押して離す） / hold ZL（押したまま次へ） / release ZL（離す） / wait 0.1s（待つ）
+#   wait profile（その合図が出るまで待つ。合図名は until と同じ。例: wait profile）
+#   mash A（0.5秒ごとに A） / tap stick L up（上に0.2秒倒して離す） / stick L up（上に倒したまま次へ）
+#   seq LLALLDDA（1文字1回押す。L=左 R=右 U=上 D=下 A=A） / press ZL+Y（同時に1回押す）
+#   ボタン名: A B X Y UP DOWN LEFT RIGHT PLUS ZL ZR L R
+# until（終わりの合図。合図が出た時点で次へ）:
+#   blackout（画面が暗転。出ていない→出た に変わった時だけ数える。区間の開始時に暗転中なら明るくなるまで待つ）
+#   blackout_end（暗転が明けた。blackout と同じく0.5秒以上続いた暗転だけ数える）
+#   blackout×N（N回目の暗転） / blackout_end×N（N回目の暗転明け） / skip（ムービーのスキップができた） / talk（会話の枠が出た） / battle（バトルのHPが満タン）
+#   face_screen（顔選択の画面が出た） / name_screen（名前入力の画面が出た）
+#   done（steps・replay の範囲を押し終わったら次へ） / enter（人の Enter） / end（完了を通知して止まる） / a|b（どちらか先に出た方）
+# except: [{when: b_back, press: B}]  区間の中で b_back（「B 戻る」）が出たら B を1回押す。A連打の前に毎回見る。コマ番号は参考。
+# limit（秒）: PCが操作する区間の上限。trial5 の実測（区間の先頭から次の区間の先頭まで。切り上げ）+ 30 秒。統合した区間は元の合計 + 30 秒。過ぎたら全部離して人に渡す。
+# 区間が終わったら、押している・倒しているものを全部離してから次に進む。handoff は通知するので、notify の印は書かない。
+- {id: language_1, frames: 3-3, kind: fixed, steps: [press A], until: face_screen, limit: 31}
+- {id: face_1, frames: 4-4, kind: fixed, steps: [tap stick L up, press A], until: name_screen, limit: 32}
+- {id: name_input_1, frames: 5-20, kind: fixed, steps: [seq LLALLAAAA, press PLUS, wait profile, seq DDA], until: blackout, limit: 49}  # seq の順にカーソルを動かす。プロフィール設定の画面で DDA
+- {id: logo_1, frames: 20-20, kind: fixed, steps: [mash A], until: blackout_end, limit: 38}  # ゲーフリロゴとローディング（logo_1 + loading_1）。暗転が続くので、明けるまで A 連打（ムービーの始まり）
+- {id: movie_1, frames: 21-34, kind: fixed, steps: [hold PLUS 3s, mash A], until: blackout_end, limit: 46}  # ムービーとそのあとのローディング。スキップ後の暗転は薄暗い読み込みを挟んで1つに数える。青い会話枠で A を待つので A 連打で進める
+- {id: move_1, frames: 35-107, kind: replay, route: move_1/20261031-161722_1.json, pre: [wait 17s], trim: [50.7, 73.8], until: talk, limit: 65}  # 会話は movie_1 の A 連打で閉じているので、明けたらすぐこの区間に渡し、歩き出す前に17秒待つ（元の talk_1 の待ち）
+- {id: talk_2, frames: 108-189, kind: fixed, steps: [mash A], until: blackout_end, limit: 146}
+- {id: movie_2, frames: 190-218, kind: fixed, steps: [wait lit, hold PLUS 3s, mash A], until: blackout×2, limit: 79}  # 1回目はスキップ後の暗転（約30秒）、2回目が217から
+- {id: move_2, frames: 219-248, kind: replay, route: move_2/20261031-162146_1.json, trim: [3.8, 27.6], until: talk, limit: 64}
+- {id: talk_3, frames: 249-285, kind: fixed, steps: [mash A], until: blackout, limit: 87}  # 249〜285の暗転は284の1回だけ（blackout×1）
+- {id: move_3, frames: 286-310, kind: replay, route: move_3/20261031-162301_1.json, trim: [7.7, 13.6], until: talk, limit: 43}
+- {id: talk_4, frames: 311-311, kind: fixed, steps: [mash A], until: battle, limit: 89}
+- {id: battle_1, frames: 312-345, kind: battle, steps: [press A, hold ZL, wait 0.5s, press Y, press X, press A, release ZL, wait 0.3s], until: blackout, limit: 79}
+- {id: talk_5, frames: 346-400, kind: fixed, steps: [mash A], until: blackout×5, limit: 173}
+- {id: move_4, frames: 401-417, kind: replay, route: move_4/20261031-213018_1.json, trim: [2.9, 21.6], until: talk, limit: 54}  # trial3 で人が歩いた記録（直進→右折→直進→右折→会話）
+- {id: talk_6, frames: 418-434, kind: fixed, steps: [mash A], until: blackout, limit: 49}
+- {id: battle_2, frames: 435-474, kind: battle, steps: [press A, hold ZL, wait 0.5s, press Y, press X, press A, release ZL, wait 0.3s], until: blackout×2, limit: 138}  # 462の暗転のあと会話。ZL を押して0.5秒後に Y・X・A（人の記録どおり）、周ごとに離す。473の暗転で終わり
+- {id: move_5, frames: 475-477, kind: replay, route: move_5/20261031-163947_1.json, trim: [2.3, 12.2], until: blackout_end, limit: 51}
+- {id: movie_3, frames: 481-487, kind: fixed, steps: [wait lit, hold PLUS 3s], until: blackout_end, limit: 39}
+- {id: talk_7, frames: 488-492, kind: fixed, steps: [mash A], until: blackout, limit: 48}
+- {id: move_6, frames: 493-513, kind: replay, route: move_6/20261031-164249_1.json, trim: [3.4, 9.2], until: talk, limit: 43}  # 上→話しかける A
+- {id: talk_8, frames: 514-520, kind: fixed, steps: [wait talk, wait 1s, press A], until: done, limit: 32}  # 枠が出たら1秒待って A 1回（短い会話は A 1回で閉じる）
+- {id: move_7, frames: 521-526, kind: replay, route: move_6/20261031-164249_1.json, trim: [17.2, 22.8], until: blackout, limit: 37}  # 右→右で扉。扉の暗転で次へ
+- {id: talk_9, frames: 527-534, kind: fixed, steps: [mash A], until: blackout, limit: 54}  # 扉のあとの会話。終わりの暗転で次へ
+- {id: move_8, frames: 535-537, kind: replay, route: move_7/20261031-164353_1.json, trim: [50.8, 55.1], until: talk, limit: 49}  # trial2 の記録の上→A だけ。会話の枠で talk_10 へ
+- {id: talk_10, frames: 538-572, kind: fixed, steps: [mash A], until: blackout, limit: 42}
+- {id: move_9, frames: 573-579, kind: replay, route: move_8_1/20261031-213734_1.json, trim: [2.6, 8.4], until: blackout, limit: 40}  # 上→左→A。A のあとの暗転で次へ
+- {id: talk_11, frames: 573-579, kind: fixed, steps: [mash A], until: blackout, limit: 109}
+- {id: move_10, frames: 580-588, kind: replay, route: talk_8_2/20261101-003348_1.json, trim: [93.6, 96.0], until: blackout, limit: 41}  # 上→A
+- {id: talk_12, frames: 589-593, kind: fixed, steps: [mash A], until: blackout, limit: 40}
+- {id: move_11, frames: 589-593, kind: replay, route: talk_8_2/20261101-003348_1.json, trim: [113.1, 120.6], until: blackout, limit: 44}  # 上→左→上→A×3
+- {id: move_12, frames: 589-593, kind: replay, route: talk_8_2/20261101-003348_1.json, trim: [134.3, 139.4], pre: [wait lit, wait blackout], until: blackout×2, limit: 50}
+- {id: talk_13, frames: 589-593, kind: fixed, steps: [mash A], until: blackout, limit: 36}
+- {id: move_13, frames: 589-593, kind: replay, route: talk_8_2/20261101-003348_1.json, trim: [154.7, 157.0], pre: [wait lit, wait blackout, wait lit, wait 2s], until: blackout×2, limit: 42}
+- {id: talk_14, frames: 589-632, kind: fixed, steps: [mash A], until: blackout×5, limit: 139}
+- {id: move_14, frames: 633-634, kind: replay, route: talk_8_2/20261101-003348_1.json, trim: [277.5, 283.3], pre: [wait lit, wait 3s], until: blackout, limit: 43}
+- {id: move_15, frames: 635-644, kind: replay, route: talk_8_2/20261101-003348_1.json, trim: [288.0, 294.6], until: blackout, limit: 43}  # 左→上→A×3
+- {id: talk_15, frames: 645-750, kind: fixed, steps: [mash A], until: blackout×4, except: [{when: b_back, press: B}], limit: 250}
+- {id: move_16, frames: 751-755, kind: fixed, steps: [stick L up, mash A], until: blackout, limit: 43}  # 前に倒したままA連打。壁に当たると次へ進む
+- {id: move_17, frames: 756-761, kind: fixed, steps: [stick L up, mash A], until: blackout, limit: 39}
+- {id: talk_16, frames: 762-765, kind: fixed, steps: [mash A], until: battle|blackout, limit: 37}
+- {id: battle_3, frames: 766-807, kind: battle, steps: [press A, hold ZL, wait 0.5s, press Y, press X, press A, release ZL, wait 0.3s], until: blackout×3, limit: 130}  # バトルの途中で暗転が2回（短い会話を挟む）、3回目で終わる
+- {id: talk_17, frames: 808-871, kind: fixed, steps: [mash A], until: blackout, except: [{when: b_back, press: B}], limit: 68}  # 終わりの暗転 30:00.5
+- {id: move_18, frames: 872-875, kind: fixed, steps: [stick L up], until: blackout, limit: 40}
+- {id: talk_18, frames: 876-882, kind: fixed, steps: [mash A], until: blackout, limit: 41}
+- {id: move_19, frames: 883-886, kind: replay, route: move_17/20261031-215335_1.json, trim: [2.0, 18.1], until: talk, limit: 51}  # 梯子。trial3 で人が歩いた記録（上→右→上＋A→上）。終わりの1秒後に会話の枠が出る
+- {id: talk_19, frames: 887-894, kind: fixed, steps: [mash A], until: blackout, limit: 38}
+- {id: move_20, frames: 895-902, kind: fixed, steps: [stick L up], until: blackout, limit: 38}
+- {id: talk_20, frames: 903-909, kind: fixed, steps: [mash A], until: blackout, limit: 44}
+- {id: move_21, frames: 910-933, kind: replay, route: move_21/20261101-141811_1_fixed.json, trim: [4.5, 21.4], until: talk, limit: 60}  # trial8 で人が歩いた記録。右スティックの行き過ぎと戻し（RIGHT 0.184秒）は相殺済み
+- {id: talk_21, frames: 934-974, kind: fixed, steps: [wait lit, press A, mash A], until: blackout×2, except: [{when: b_back, press: B}], limit: 93}
+- {id: move_22, frames: 975-1004, kind: replay, route: move_20/20261031-170115_1.json, trim: [3.0, 16.9], until: talk, limit: 50}
+- {id: talk_22, frames: 1005-1020, kind: fixed, steps: [mash A], until: blackout, limit: 47}
+- {id: move_23, frames: 1005-1020, kind: replay, route: zlzr_1/20261031-170251_1.json, trim: [0, 22.8], until: blackout_end, limit: 45}  # 歩いてA→暗転が明けるまで。記録は人が zlzr_1 を引き取った時のもの
+- {id: talk_23, frames: 1005-1020, kind: fixed, steps: [mash A], until: blackout_end, limit: 63}  # 会話のA連打→暗転(1020)が明けたら zlzr_1
+- {id: zlzr_1, frames: 1021-1025, kind: fixed, steps: [wait lit, hold ZL, wait 0.1s, press ZR, release ZL], until: blackout_end, limit: 39}  # ZL押下→0.1秒後にZR→ZR離す→ZL離す
+- {id: talk_24, frames: 1026-1030, kind: fixed, steps: [mash A], until: blackout_end, limit: 49}
+- {id: zlzr_2, frames: 1031-1036, kind: fixed, steps: [wait lit, hold ZL, wait 0.1s, press ZR, release ZL], until: blackout, limit: 35}
+- {id: talk_25, frames: 1037-1049, kind: fixed, steps: [mash A], until: blackout, limit: 56}  # ① 会話
+- {id: up_1, frames: 1050-1051, kind: fixed, steps: [wait lit, press UP], until: battle, limit: 35}  # ② 十字上
+- {id: battle_4, frames: 1052-1055, kind: battle, steps: [press A, hold ZL, wait 0.5s, press Y, press X, press A, release ZL, wait 0.3s], until: talk, limit: 150}  # ② バトル。勝つと会話
+- {id: talk_26, frames: 1056-1057, kind: fixed, steps: [mash A], until: battle, limit: 33}  # ② 会話。終わると battle の合図が出る
+- {id: zlzr_3, frames: 1058-1062, kind: fixed, steps: [wait lit, hold ZL, wait 0.1s, press ZR, release ZL], until: blackout, limit: 35}  # ② ZLZR（zlzr_1・2 と同じ）
+- {id: talk_27, frames: 1063-1105, kind: fixed, steps: [mash A], until: frame, limit: 60}  # player_1 の前半の会話。青枠が出たら player_1 へ渡す
+- {id: player_1, frames: 1063-1105, kind: handoff, until: enter}  # ③から人に渡す。move_24 の移動も人が歩く。人は最後のA（会話の終わり）まで進めて Enter
+- {id: talk_28, frames: 1106-1120, kind: fixed, steps: [mash A], until: blackout, limit: 53}
+- {id: move_24, frames: 1121-1133, kind: fixed, steps: [stick L up, mash A], until: blackout, limit: 35}
+- {id: talk_29, frames: 1134-1140, kind: fixed, steps: [mash A], until: blackout, limit: 49}
+- {id: move_25, frames: 1141-1152, kind: replay, route: move_22/20261031-170937_1.json, trim: [1.7, 4.3], until: done, limit: 36}  # 話しかけるAまで
+- {id: choice_1, frames: 1141-1152, kind: fixed, steps: [wait 1.0s, press A, wait 1.7s, tap stick L down, wait 1.0s, mash A], until: blackout_end×2, limit: 54}
+- {id: move_26, frames: 1153-1171, kind: replay, route: move_23/20261031-170945_1.json, trim: [2.1, 5.6], until: talk, limit: 41}
+- {id: talk_30, frames: 1172-1229, kind: fixed, steps: [mash A], until: blackout×2, limit: 92}
+- {id: x_x_1, frames: 1230-1249, kind: fixed, steps: [wait lit, wait 2s, press X, wait 1.5s, press A, wait 1.5s, press X, wait 1.5s, press A, wait 0.5s, press A, wait 0.5s, press A, wait 0.5s, press A, wait 0.5s, press A, wait 0.5s, press A, wait 0.5s, press A, wait 0.5s, press A, wait 3s, press B], until: blackout, limit: 50}  # 本人: X→A→X→A連打（0.5秒おき×8）→3秒待ってB（本人の確認済み）。最後の B で閉じると暗転
+- {id: talk_31, frames: 1250-1257, kind: fixed, steps: [mash A], until: blackout, limit: 45}
+- {id: last_menu_1, frames: 1258-1265, kind: fixed, snap: true, steps: [wait lit, press X, wait 1s, press UP, wait 1s, press A, wait 1s, press RIGHT, wait 1s, press RIGHT, wait 1s, press DOWN, wait 1s, press A, wait 1s, mash A], until: menu2, limit: 55}  # 1秒ずつ空けて押し、menu2 まで A 連打
+- {id: last_menu_2, frames: 1266-1295, kind: fixed, snap: true, steps: [wait 2s, press A, wait 1s, press DOWN, wait 1s, press DOWN, wait 1s, press DOWN, wait 1s, press A, wait 1s], until: done, limit: 39}
+- {id: after_1, frames: 1296-1296, kind: fixed, steps: [wait lit, mash A], except: [{when: back_only, press: B}], until: menu_open, limit: 60}  # 青い枠があれば A 連打、枠が無くて「戻る」が出ていれば B。メニュー画面（右下が「閉じる」）が出たら次へ
+- {id: after_2, frames: 1296-1296, kind: fixed, steps: [wait 1s, press_until DOWN cursor_box, wait 1s, mash A], until: back, limit: 45}  # カーソルがボックスに来るまで下（スティック）、A 連打。右下に「戻る」が出たら次へ
+- {id: after_3, frames: 1296-1296, kind: fixed, steps: [wait 1s, tap stick L right, tap stick L right, tap stick L right, tap stick L right, tap stick L right, wait 1s, tap stick L up, wait 1s, press Y, wait 1s, tap stick L down, wait 1s, press A, wait 1s], until: done, limit: 40}  # 決め打ち（記録の14〜18）
+- {id: after_4, frames: 1296-1296, kind: fixed, steps: [wait back, mash B], until: menu_open, limit: 40}  # 「戻る」が出ていたら、メニュー画面になるまで B
+- {id: after_5, frames: 1296-1296, kind: fixed, steps: [wait 1s, press_while R menu_open, wait 1s, mash A], until: frame, limit: 40}  # メニュー画面が消えるまで R、そのあと青い枠が出るまで A 連打。青い枠が出たら終わり
+- {id: end_1, frames: 1296-1296, kind: fixed, steps: [], until: end}

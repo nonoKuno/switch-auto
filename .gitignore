@@ -1,0 +1,10 @@
+/videos
+/work
+/logs
+.venv/
+__pycache__/
+# 見本の元画像（za/refs.npz に変換して使う）と、通知音の差し替え
+/za/templates
+/common/sounds
+# 開発用のメモ
+*-plan.md

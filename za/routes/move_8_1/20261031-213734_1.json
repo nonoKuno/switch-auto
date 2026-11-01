@@ -1,0 +1,1 @@
+{"section": "move_8_1", "lap": 1, "events": [{"t": 2.685, "down": ["LS_UP"], "up": []}, {"t": 5.372, "down": [], "up": ["LS_UP"]}, {"t": 6.132, "down": ["LS_LEFT"], "up": []}, {"t": 6.732, "down": [], "up": ["LS_LEFT"]}, {"t": 8.18, "down": ["A"], "up": []}, {"t": 8.3, "down": [], "up": ["A"]}]}
