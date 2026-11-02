@@ -2,7 +2,7 @@
 
 使い方:
   .venv/bin/python za/run.py --switch AA:BB:CC:DD:EE:FF [--from language] [--to face] [--lap 1] [--port 8000] [--dev [--video]]
-起動後は人が周の準備をして Enter（端末かダッシュボードの「戻す」）で始まる。q か Ctrl+C で全部離して終了。
+起動後は人が周の準備をして、ダッシュボードの「▶ 開始」（端末から起動したときは Enter でも可）で始まる。q か Ctrl+C で全部離して終了。
 """
 import argparse
 import json
@@ -648,7 +648,7 @@ def main():
     run = Run(pad, live, args)
     server = ThreadingHTTPServer(("127.0.0.1", args.port), make_live_handler(live, run))
     threading.Thread(target=server.serve_forever, daemon=True).start()
-    print(f"http://127.0.0.1:{args.port}/ を開く。準備ができたら Enter で開始（q か Ctrl+C で終了）", flush=True)
+    print(f"http://127.0.0.1:{args.port}/ を開く。準備ができたらダッシュボードの「▶ 開始」で始める（端末から起動したときは Enter でも可。q か Ctrl+C で終了）", flush=True)
     try:
         with Keys() as keys:
             while not keys.quit.is_set():

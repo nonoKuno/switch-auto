@@ -22,7 +22,7 @@
 - {id: name_input_1, frames: 5-20, kind: fixed, steps: [seq LLALLAAAA, press PLUS, wait profile, seq DDA], until: blackout, limit: 49}  # seq の順にカーソルを動かす。プロフィール設定の画面で DDA
 - {id: logo_1, frames: 20-20, kind: fixed, steps: [mash A], until: blackout_end, limit: 38}  # ゲーフリロゴとローディング（logo_1 + loading_1）。暗転が続くので、明けるまで A 連打（ムービーの始まり）
 - {id: movie_1, frames: 21-34, kind: fixed, steps: [hold PLUS 3s, mash A], until: blackout_end, limit: 46}  # ムービーとそのあとのローディング。スキップ後の暗転は薄暗い読み込みを挟んで1つに数える。青い会話枠で A を待つので A 連打で進める
-- {id: move_1, frames: 35-107, kind: replay, route: move_1/20261031-161722_1.json, pre: [wait 17s], trim: [50.7, 73.8], until: talk, limit: 65}  # 会話は movie_1 の A 連打で閉じているので、明けたらすぐこの区間に渡し、歩き出す前に17秒待つ（元の talk_1 の待ち）
+- {id: move_1, frames: 35-107, kind: replay, route: move_1/20261031-161722_1.json, pre: [wait 13s], trim: [50.7, 73.8], until: talk, limit: 65}  # 会話は movie_1 の A 連打で閉じているので、明けたらすぐこの区間に渡し、歩き出す前に13秒待つ（元の talk_1 の待ち）
 - {id: talk_2, frames: 108-189, kind: fixed, steps: [mash A], until: blackout_end, limit: 146}
 - {id: movie_2, frames: 190-218, kind: fixed, steps: [wait lit, hold PLUS 3s, mash A], until: blackout×2, limit: 79}  # 1回目はスキップ後の暗転（約30秒）、2回目が217から
 - {id: move_2, frames: 219-248, kind: replay, route: move_2/20261031-162146_1.json, trim: [3.8, 27.6], until: talk, limit: 64}
