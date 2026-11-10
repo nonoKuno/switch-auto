@@ -32,8 +32,16 @@ FRAME_BGR = (100, 64, 40)  # 会話の青い枠の平均の色（実測 B97〜10
 FRAME_TOL = 15
 CURSOR_WHITE = 0.5   # ボックスの範囲で白い画素（明るさ200以上）がこれを超えたらカーソルがボックスにある
 
+# 白枠・青枠（画面下の同じ長方形 x288〜992 y558〜688 に出る）。範囲は (x0, x1, y0, y1)、両端を含む
+BOX_EDGE = ((300, 979, 558, 560), (300, 979, 686, 688), (289, 291, 570, 679), (989, 991, 570, 679))
+BOX_OUTER = ((300, 979, 548, 553), (300, 979, 692, 697), (278, 283, 570, 679), (996, 1001, 570, 679))
+BOX_HIT = 0.9        # ふちがこの割合以上で枠の色
+BOX_OUTER_MAX = 0.6  # 外側が枠の色でこの割合未満
+BLUE_EDGE_BGR = (80, 38, 22)
+BLUE_TOL = 20
+
 SIGNALS = ("blackout", "skip", "talk", "battle", "b_back", "face_screen", "name_screen", "profile", "menu2", "bright",
-           "back", "menu_open", "frame", "back_only", "cursor_box")
+           "back", "menu_open", "frame", "back_only", "cursor_box", "white_box", "blue_box")
 REF_PNGS = {
     "B戻る": "B戻る.png",
     "顔選択": "顔選択.png",
@@ -67,6 +75,22 @@ def _blue(bgr):
 def _green(bgr):
     """HPバーの緑 BGR(116,215,47) にほぼ一致する画素（手本 (116,210,36)・実機 (117,220,58) の両方に入る）。"""
     return (np.abs(bgr.astype(int) - (116, 215, 47)).max(axis=2) <= GREEN_TOL)
+
+
+def _pixels(frame, areas):
+    return np.concatenate([frame[y0:y1 + 1, x0:x1 + 1].reshape(-1, 3) for x0, x1, y0, y1 in areas]).astype(int)
+
+
+def _white_at(px, low):
+    return float((px.min(axis=1) >= low).mean())
+
+
+def _color_at(px, bgr):
+    return float((np.abs(px - bgr).max(axis=1) <= BLUE_TOL).mean())
+
+
+def _box_size_ok(frame):
+    return frame.shape[:2] == (720, 1280)
 
 
 class Screens:
@@ -143,8 +167,22 @@ class Screens:
         mean = _crop(frame, box).reshape(-1, 3).mean(axis=0)
         return bool(np.abs(mean - FRAME_BGR).max() <= FRAME_TOL)
 
+    def white_box(self, frame):
+        """白の台詞枠がはっきり出ているか（出入りの途中は False）。"""
+        if not _box_size_ok(frame):
+            return False
+        return (_white_at(_pixels(frame, BOX_EDGE), 230) >= BOX_HIT
+                and _white_at(_pixels(frame, BOX_OUTER), 230) < BOX_OUTER_MAX)
+
+    def blue_box(self, frame):
+        """青のシステム枠がはっきり出ているか（出入りの途中は False）。"""
+        if not _box_size_ok(frame):
+            return False
+        return (_color_at(_pixels(frame, BOX_EDGE), BLUE_EDGE_BGR) >= BOX_HIT
+                and _color_at(_pixels(frame, BOX_OUTER), BLUE_EDGE_BGR) < BOX_OUTER_MAX)
+
     def back_only(self, frame):
-        return self.back(frame) and not self.frame(frame)
+        return self.back(frame) and not self.blue_box(frame)
 
     def cursor_box(self, frame):
         """メニューのカーソルがボックスにあるか（カーソルのある項目は白くなる。メニュー画面の時だけ）。"""

@@ -48,6 +48,8 @@ def load_flow(path=FLOW, video=False):
             "excepts": [(e["when"], e["press"]) for e in s.get("except", [])],
             "limit": float(s["limit"]) if "limit" in s else None,
             "snap": bool(s.get("snap")),
+            "box_wait": float(s["box_wait"]) if "box_wait" in s else None,
+            "gap": float(s["gap"]) if "gap" in s else None,
             "route": s.get("route"),
             "pre": [str(x) for x in s.get("pre", [])],
             "trim": ([[float(x) for x in r] for r in s["trim"]] if isinstance(s["trim"][0], list)
