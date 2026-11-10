@@ -39,6 +39,8 @@ RANGE_GAP = 0.4
 IDLE_MAX = 0.5  # replay で、スティック→スティックの間と範囲の頭・終わりの何も押していない間はこの秒数まで詰める
 REPLAY_DELAY = 1.0  # replay は wait lit のあと、さらにこの秒数待ってから流す
 LIT_MIN = 1.0  # 暗転でない状態がこの秒数続いたら「明けた」（wait lit・lit_ のコマ）
+BOX_SIGNALS = ("white_box", "blue_box")
+BOX_WAIT = 10.0  # replay で until が枠の区間は、押し終わってからこの秒数のうちに枠が出なければ人に渡す。区間ごとに box_wait で変える
 VIDEO_FPS = 30
 VIDEO_RANGES = {"player_1": ("player_1", "player_1"), "x_x": ("talk_30", "talk_31")}  # --video で、録画の名前: (始めの区間, 終わりの区間)。この間にいる間を録画する
 STICK_DIRS = {"UP": (0, 100), "DOWN": (0, -100), "LEFT": (-100, 0), "RIGHT": (100, 0)}
@@ -125,8 +127,12 @@ class Executor(threading.Thread):
         self.stop = threading.Event()
         self.done = threading.Event()
         self.replayed = threading.Event()
+        self.replayed_at = None  # replay の範囲を押し終わった時刻
         self.half = threading.Event()  # replay の再生の時間の半分が過ぎた（blackout_end を数え始める）
         self.error = None
+        gap = sec.get("gap")  # 区間ごとの「離してから次に押すまで」（press と mash）
+        self.step_gap = STEP_GAP if gap is None else gap
+        self.mash_gap = MASH_GAP if gap is None else gap
 
     def run(self):
         try:
@@ -197,6 +203,7 @@ class Executor(threading.Thread):
             self._apply(down, up)
         self.pad.release_all()
         self.run_.pressing = set()
+        self.replayed_at = self.run_.now()
         self.replayed.set()
         # 終わりの合図が出るまで待つ（main が止める）
         while not self.stop.is_set():
@@ -228,7 +235,7 @@ class Executor(threading.Thread):
         op = w[0]
         if op == "press":
             self._press(*[btn(b) for b in w[1].split("+")])
-            self._sleep(STEP_GAP)
+            self._sleep(self.step_gap)
         elif op == "hold" and len(w) == 3:
             b = btn(w[1])
             pad.hold(b)
@@ -277,7 +284,7 @@ class Executor(threading.Thread):
                         press = btn(other)
                         break
                 self._press(press)
-                self._sleep(MASH_GAP)
+                self._sleep(self.mash_gap)
         else:
             raise ValueError(f"steps が分からない: {' '.join(w)}")
 
@@ -588,6 +595,11 @@ class Run:
         limit = self.limits[prev]
         if limit is not None and t - p.records[prev]["start"] > limit + LATENCY:
             self.hold("タイムアウト")
+            return
+        sec = self.secs[prev]
+        if sec["kind"] == "replay" and sec["until"] in BOX_SIGNALS and self.exec.replayed_at is not None \
+                and t - self.exec.replayed_at > (sec["box_wait"] or BOX_WAIT):
+            self.hold("枠が出ない")
 
     def snap_steps(self, t):
         """snap: true の区間で、押した0.5秒後と2秒ごとにコマを残す（画面遷移の確認用）。"""
