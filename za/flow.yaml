@@ -11,7 +11,7 @@
 # until（終わりの合図。合図が出た時点で次へ）:
 #   blackout（画面が暗転。出ていない→出た に変わった時だけ数える。区間の開始時に暗転中なら明るくなるまで待つ）
 #   blackout_end（暗転が明けた。blackout と同じく0.5秒以上続いた暗転だけ数える）
-#   blackout×N（N回目の暗転） / blackout_end×N（N回目の暗転明け） / skip（ムービーのスキップができた） / talk（会話の枠が出た。旧） / white_box（白の台詞枠がはっきり出た） / blue_box（青のシステム枠がはっきり出た） / battle（バトルのHPが満タン）
+#   blackout×N（N回目の暗転） / blackout_end×N（N回目の暗転明け） / skip（ムービーのスキップができた） / white_box（白の台詞枠がはっきり出た） / blue_box（青のシステム枠がはっきり出た） / battle（バトルのHPが満タン）
 #   face_screen（顔選択の画面が出た） / name_screen（名前入力の画面が出た）
 #   done（steps・replay の範囲を押し終わったら次へ） / enter（人の Enter） / end（完了を通知して止まる） / a|b（どちらか先に出た方）
 # except: [{when: b_back, press: B}]  区間の中で b_back（「B 戻る」）が出たら B を1回押す。A連打の前に毎回見る。コマ番号は参考。

@@ -19,7 +19,6 @@ BRIGHT_MEAN = 20     # 画面の平均の明るさがこれ以上なら明るい
 BLUE_RATIO = 0.2
 GREEN_RATIO = 0.3    # バトルの範囲で緑の画素がこれを超えたらバトル開始（HPが満タンの間だけ）
 GREEN_TOL = 15      # 緑の各色の許容差（基準 BGR(116,215,47) から各色 ±15。手本 (116,210,36) と実機 (117,220,58) の両方に入る）
-TALK_WHITE = 0.1
 B_BACK_NCC = 0.75    # B戻るの範囲が見本と形（明るさの上下）でこれ以上相関するなら「B 戻る」が出ている。背景の明るさが違っても拾う（実測: 出ている 0.78〜0.99、会話の最中の他の場面は 0.73 以下）
 FACE_SAME = 0.9
 NAME_SAME = 0.95     # 名前入力の範囲が見本とこれ以上同じなら名前入力の画面（文字入力の最中は 0.956 以上、ほかの場面は最大 0.941 で実測）
@@ -28,8 +27,6 @@ MENU2_SAME = 0.9
 
 BACK_NCC = 0.9       # 右下の「戻る」の見本と形がこれ以上相関するなら back（実測: 出ている 0.98〜1.0、「閉じる」は 0.78〜0.79）
 CLOSE_NCC = 0.95     # 右下の「閉じる」の見本と形がこれ以上相関するならメニュー画面 menu_open（実測: 1.0、青枠は 0.9）
-FRAME_BGR = (100, 64, 40)  # 会話の青い枠の平均の色（実測 B97〜102 G58〜67 R31〜47）
-FRAME_TOL = 15
 CURSOR_WHITE = 0.5   # ボックスの範囲で白い画素（明るさ200以上）がこれを超えたらカーソルがボックスにある
 
 # 白枠・青枠（画面下の同じ長方形 x288〜992 y558〜688 に出る）。範囲は (x0, x1, y0, y1)、両端を含む
@@ -40,8 +37,8 @@ BOX_OUTER_MAX = 0.6  # 外側が枠の色でこの割合未満
 BLUE_EDGE_BGR = (80, 38, 22)
 BLUE_TOL = 20
 
-SIGNALS = ("blackout", "skip", "talk", "battle", "b_back", "face_screen", "name_screen", "profile", "menu2", "bright",
-           "back", "menu_open", "frame", "back_only", "cursor_box", "white_box", "blue_box")
+SIGNALS = ("blackout", "skip", "battle", "b_back", "face_screen", "name_screen", "profile", "menu2", "bright",
+           "back", "menu_open", "back_only", "cursor_box", "white_box", "blue_box")
 REF_PNGS = {
     "B戻る": "B戻る.png",
     "顔選択": "顔選択.png",
@@ -112,13 +109,6 @@ class Screens:
         box = self.boxes.get("スキップ")
         return bool(box) and _ratio(_blue(_crop(frame, box))) > BLUE_RATIO
 
-    def talk(self, frame):
-        box = self.boxes.get("会話")
-        if not box:
-            return False
-        gray = cv2.cvtColor(_crop(frame, box), cv2.COLOR_BGR2GRAY)
-        return _ratio(gray >= 200) > TALK_WHITE
-
     def battle(self, frame):
         box = self.boxes.get("バトル")
         return bool(box) and _ratio(_green(_crop(frame, box))) > GREEN_RATIO
@@ -158,14 +148,6 @@ class Screens:
 
     def menu_open(self, frame):
         return self._ncc(frame, "閉じる") >= CLOSE_NCC
-
-    def frame(self, frame):
-        """会話の青い枠が出ているか（枠の中の文字は問わない。範囲の平均の色が枠の色）。"""
-        box = self.boxes.get("枠")
-        if not box:
-            return False
-        mean = _crop(frame, box).reshape(-1, 3).mean(axis=0)
-        return bool(np.abs(mean - FRAME_BGR).max() <= FRAME_TOL)
 
     def white_box(self, frame):
         """白の台詞枠がはっきり出ているか（出入りの途中は False）。"""
