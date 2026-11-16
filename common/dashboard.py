@@ -20,7 +20,7 @@ from urllib.parse import parse_qs, urlparse
 import cv2
 
 ROOT = Path(__file__).resolve().parents[1]
-SCREENS_HTML = ROOT / "work" / "flow_screens.html"
+SCREENS_DIR = ROOT / "work" / "screens"
 sys.path.insert(0, str(ROOT))
 
 from common import frames  # noqa: E402
@@ -231,7 +231,7 @@ button{margin:2px;padding:6px 14px}
  </div>
  <div id="lower">
   <table><tbody id="sections"></tbody></table>
-  <div id="pic" hidden><div>手本（work/flow_screens.html）</div><img id="ref" alt="手本の画面"></div>
+  <div id="pic" hidden><div>手本（work/screens）</div><img id="ref" alt="手本の画面"></div>
  </div>
 </div></div>
 <script>
@@ -585,17 +585,8 @@ def stick_xy(held, side):
 
 
 def screen_images():
-    """work/flow_screens.html から {区間 ID: 手本の画像のパス} を作る。1つの行に画像が複数あれば1枚目。画像の無い行は入れない。"""
-    if not SCREENS_HTML.exists():
-        return {}
-    html = SCREENS_HTML.read_text(encoding="utf-8")
-    out = {}
-    for row in html.split("<tr")[1:]:
-        m = re.search(r'<td class="id">\d+\. (\w+)<small', row)
-        img = re.search(r'<img[^>]*\ssrc="([^"]+)"', row)
-        if m and img:
-            out[m.group(1)] = (SCREENS_HTML.parent / img.group(1)).resolve()
-    return out
+    """work/screens/<区間 ID>.jpg から {区間 ID: 手本の画像のパス} を作る。"""
+    return {p.stem: p for p in SCREENS_DIR.glob("*.jpg")}
 
 
 class Live:
